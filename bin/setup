@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -a
+source ./bin/env.sh
+
+git clone https://github.com/olefredrik/FoundationPress.git ${THEME_NAME}
+
+mkdir ${SITE_NAME} && cd ${SITE_NAME}
+
+touch docker-compose.yml
+
+cat > docker-compose.yml <<EOL
+version: "2"
+services:
+  ${DOCKER_DB_IMAGE}:
+    image: mariadb
+    ports:
+      - "8081:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  ${DOCKER_WP_IMAGE}:
+    image: wordpress
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "8080:80"
+    links:
+      - my-wpdb:mysql
+    environment:
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+EOL
+
+docker-compose up
+
+# docker-compose logs -f
